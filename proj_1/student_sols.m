@@ -211,21 +211,7 @@ student_id = 20021026;
         rxPilot = rxFrame(1:N); %TODO: This line is missing some code!
         rxData = rxFrame(N+1:end); %TODO: This line is missing some code!
     end
-    function H_est = estimate_channel(received_pilot, transmitted_pilot)
-    % Estimate the channel based on the received and transmitted pilot symbols
-    % received_pilot: The pilot symbols received from the channel
-    % transmitted_pilot: The original pilot symbols that were transmitted
 
-    % Ensure inputs are column vectors
-    received_pilot = received_pilot(:);
-    transmitted_pilot = transmitted_pilot(:);
-
-    % Simple channel estimation: element-wise division of received pilot symbols by transmitted pilot symbols
-    H_est = received_pilot ./ transmitted_pilot;
-
-    % Handle cases where transmitted pilot symbol is zero to avoid division by zero
-    H_est(transmitted_pilot == 0) = 0;
-end
     function [rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err)
         %% Not Compulsory
         % Simulate OFDM signal transmission/reception over an unknown
@@ -324,7 +310,7 @@ end
         symbs.rx_pe = r.d; % Store symbols for later
         
         % Esimate channel
-        H = estimate_channel(r.p,x.p); %TODO: This line is missing some code!
+        H = x.p/r.p; %TODO: This line is missing some code!
 
         % Remove effect of channel on the data package by equalization.
         r_eq = r.d./H; %TODO: This line is missing some code!
