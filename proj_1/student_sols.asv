@@ -23,14 +23,13 @@ student_id = 20021026;
 	function z = add_cyclic_prefix(x,Ncp)  %#ok<*INUSD>
 		% Adds (prepends) a Ncp long cyclic prefix to the ofdm block x.
 		x = x(:);   %#ok<*NASGU> % Ensure x is a column vector
-        cyclic_prefix = x(end-Ncp+1:end);
-		z = [cyclic_prefix; x]; %TODO: This line is missing some code!
+		z = 0; %TODO: This line is missing some code!
     end
 
     function x = remove_cyclic_prefix(z,Ncp)
         % Removes a Ncp long cyclic prefix from the ofdm package z
         z = z(:);   % Ensure z is a column vector
-        x = z(Ncp+1:end); %TODO: This line is missing some code!
+        x = 0; %TODO: This line is missing some code!
     end
 
     function symb = bits2qpsk(bits)
@@ -54,13 +53,36 @@ student_id = 20021026;
         bits = bits(:);
         bits(bits ~= 0) = 1;
         bits(bits == 0) = -1;
-        temp=bits;
+        disp(bits);
+        temp=int(bits);
         if rem(length(bits),2) == 1
             error('bits must be of even length');
         end
-        real_part = bits(1:2:end);
-        imag_part = bits(2:2:end);
-        symb = (1/sqrt(2)) * (real_part + 1i * imag_part); %TODO: This line is missing some code!
+        
+        for index=1:2:length(temp)
+            if temp(index) ==1
+                    if temp(index+1)==1
+                            temp(index)=1/sqrt(2)*(1 +1j);
+                    
+                    else if temp(index+1)==-1
+                            temp(index)=1/sqrt(2)*(1-1j);
+                    end
+            
+            else if temp(index)==-1
+
+                         if temp(index+1)==1
+                             temp(index)=1/sqrt(2)*(-1 +1j);
+                         else if temp(index+1)==-1
+                                 temp(index)=1/sqrt(2)*(-1 -1j);
+
+                         end
+                         end
+            end
+                    end
+                      
+                            
+                       
+        symb = temp; %TODO: This line is missing some code!
     end
 
     function bits  = qpsk2bits(x)
@@ -75,8 +97,8 @@ student_id = 20021026;
         % first bit corresponds to the real part of the symbol while the
         % second bit corresponds to the imaginary part of the symbol.
 
-        bits(1:2:end) = real(x)>0; %TODO: This line is missing some code!
-        bits(2:2:end) = imag(x)>0; %TODO: This line is missing some code!
+        bits(1:2:end) = 0; %TODO: This line is missing some code!
+        bits(2:2:end) = 0; %TODO: This line is missing some code!
         
         % Ensure output is of correct type
         % zero value -> logical zero
@@ -190,7 +212,7 @@ student_id = 20021026;
         if(length(txData) ~= length(txPilot))
             error('Pilot and data are not of the same length!');
         end
-        txFrame = [txPilot; txData]; %TODO: This line is missing some code!
+        txFrame = 0; %TODO: This line is missing some code!
     end
 
     function [rxPilot, rxData] = split_frame(rxFrame)
@@ -199,9 +221,9 @@ student_id = 20021026;
         if rem(length(rxFrame),2) > 0
             error('Vector z must have an even number of elements'); 
         end
-        N = length(rxFrame)/2;
-        rxPilot = rxFrame(1:N); %TODO: This line is missing some code!
-        rxData = rxFrame(N+1:end); %TODO: This line is missing some code!
+        N = length(rxFrame);
+        rxPilot = 0; %TODO: This line is missing some code!
+        rxData = 0; %TODO: This line is missing some code!
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err)
