@@ -21,18 +21,22 @@ student_id = 20021026;
 
 
 	function z = add_cyclic_prefix(x,Ncp)  %#ok<*INUSD>
+        %% Finish
 		% Adds (prepends) a Ncp long cyclic prefix to the ofdm block x.
 		x = x(:);   %#ok<*NASGU> % Ensure x is a column vector
-		z = 0; %TODO: This line is missing some code!
+        cyclic_prefix = x(end-Ncp+1:end);
+		z = [cyclic_prefix; x]; %TODO: This line is missing some code!
     end
 
     function x = remove_cyclic_prefix(z,Ncp)
+        %% Finish
         % Removes a Ncp long cyclic prefix from the ofdm package z
         z = z(:);   % Ensure z is a column vector
-        x = 0; %TODO: This line is missing some code!
+        x = z(Ncp+1:end); %TODO: This line is missing some code!
     end
 
     function symb = bits2qpsk(bits)
+        %% Finish
         % Encode bits as qpsk symbols 
         % ARGUMENTS:
         % bits = array of bits. Numerical values converted as:
@@ -53,39 +57,17 @@ student_id = 20021026;
         bits = bits(:);
         bits(bits ~= 0) = 1;
         bits(bits == 0) = -1;
-        disp(bits);
-        temp=int(bits);
+        temp=bits;
         if rem(length(bits),2) == 1
             error('bits must be of even length');
         end
-        
-        for index=1:2:length(temp)
-            if temp(index) ==1
-                    if temp(index+1)==1
-                            temp(index)=1/sqrt(2)*(1 +1j);
-                    
-                    else if temp(index+1)==-1
-                            temp(index)=1/sqrt(2)*(1-1j);
-                    end
-            
-            else if temp(index)==-1
-
-                         if temp(index+1)==1
-                             temp(index)=1/sqrt(2)*(-1 +1j);
-                         else if temp(index+1)==-1
-                                 temp(index)=1/sqrt(2)*(-1 -1j);
-
-                         end
-                         end
-            end
-                    end
-                      
-                            
-                       
-        symb = temp; %TODO: This line is missing some code!
+        real_part = bits(1:2:end);
+        imag_part = bits(2:2:end);
+        symb = (1/sqrt(2)) * (real_part + 1i * imag_part); %TODO: This line is missing some code!
     end
 
     function bits  = qpsk2bits(x)
+        %% Finish 
         % Convert qpsk symbols to bits.
         % Output will be a vector twice as long as the input x, with values
         % 0 or 1.
@@ -97,8 +79,8 @@ student_id = 20021026;
         % first bit corresponds to the real part of the symbol while the
         % second bit corresponds to the imaginary part of the symbol.
 
-        bits(1:2:end) = 0; %TODO: This line is missing some code!
-        bits(2:2:end) = 0; %TODO: This line is missing some code!
+        bits(1:2:end) = real(x)>0; %TODO: This line is missing some code!
+        bits(2:2:end) = imag(x)>0; %TODO: This line is missing some code!
         
         % Ensure output is of correct type
         % zero value -> logical zero
@@ -107,6 +89,7 @@ student_id = 20021026;
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_known_channel(tx, h, N_cp, snr, sync_err)
+        %% Not Compulsory
         % Simulate OFDM signal transmission/reception over a known channel.
         %
         % -----------------------------------------------------------------
@@ -206,27 +189,30 @@ student_id = 20021026;
     end
 
     function txFrame = concat_packages(txPilot,txData)
+        %% Finish 
         % Concatenate two ofdm blocks of equal size into a frame
         txPilot = txPilot(:);
         txData = txData(:);
         if(length(txData) ~= length(txPilot))
             error('Pilot and data are not of the same length!');
         end
-        txFrame = 0; %TODO: This line is missing some code!
+        txFrame = [txPilot; txData]; %TODO: This line is missing some code!
     end
 
     function [rxPilot, rxData] = split_frame(rxFrame)
+        %% Finish
         % Split an ofdm frame into 2 equal ofdm packages
         rxFrame = rxFrame(:);
         if rem(length(rxFrame),2) > 0
             error('Vector z must have an even number of elements'); 
         end
-        N = length(rxFrame);
-        rxPilot = 0; %TODO: This line is missing some code!
-        rxData = 0; %TODO: This line is missing some code!
+        N = length(rxFrame)/2;
+        rxPilot = rxFrame(1:N); %TODO: This line is missing some code!
+        rxData = rxFrame(N+1:end); %TODO: This line is missing some code!
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err)
+        %% Not Compulsory
         % Simulate OFDM signal transmission/reception over an unknown
         % channel.
         %

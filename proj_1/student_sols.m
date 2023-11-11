@@ -21,6 +21,7 @@ student_id = 20021026;
 
 
 	function z = add_cyclic_prefix(x,Ncp)  %#ok<*INUSD>
+        %% Finish
 		% Adds (prepends) a Ncp long cyclic prefix to the ofdm block x.
 		x = x(:);   %#ok<*NASGU> % Ensure x is a column vector
         cyclic_prefix = x(end-Ncp+1:end);
@@ -28,12 +29,14 @@ student_id = 20021026;
     end
 
     function x = remove_cyclic_prefix(z,Ncp)
+        %% Finish
         % Removes a Ncp long cyclic prefix from the ofdm package z
         z = z(:);   % Ensure z is a column vector
         x = z(Ncp+1:end); %TODO: This line is missing some code!
     end
 
     function symb = bits2qpsk(bits)
+        %% Finish
         % Encode bits as qpsk symbols 
         % ARGUMENTS:
         % bits = array of bits. Numerical values converted as:
@@ -64,6 +67,7 @@ student_id = 20021026;
     end
 
     function bits  = qpsk2bits(x)
+        %% Finish 
         % Convert qpsk symbols to bits.
         % Output will be a vector twice as long as the input x, with values
         % 0 or 1.
@@ -85,6 +89,7 @@ student_id = 20021026;
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_known_channel(tx, h, N_cp, snr, sync_err)
+        %% Not Compulsory
         % Simulate OFDM signal transmission/reception over a known channel.
         %
         % -----------------------------------------------------------------
@@ -184,6 +189,7 @@ student_id = 20021026;
     end
 
     function txFrame = concat_packages(txPilot,txData)
+        %% Finish 
         % Concatenate two ofdm blocks of equal size into a frame
         txPilot = txPilot(:);
         txData = txData(:);
@@ -194,6 +200,7 @@ student_id = 20021026;
     end
 
     function [rxPilot, rxData] = split_frame(rxFrame)
+        %% Finish
         % Split an ofdm frame into 2 equal ofdm packages
         rxFrame = rxFrame(:);
         if rem(length(rxFrame),2) > 0
@@ -205,6 +212,7 @@ student_id = 20021026;
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err)
+        %% Not Compulsory
         % Simulate OFDM signal transmission/reception over an unknown
         % channel.
         %
@@ -324,6 +332,7 @@ student_id = 20021026;
     end
 
     function z = frame_interpolate(x,L,hlp)
+        %% Finish
         % Interpolate (upsample) a signal x by factor L, with an optionally
         % configurable lowpass filter.
         % Arguments:
@@ -354,13 +363,14 @@ student_id = 20021026;
         
         % Upsample by a factor L, i.e. insert L-1 zeros after each original
         % sample
-        zup(1:L:end) = 0; %TODO: This line is missing some code!
+        zup(1:L:end) = x; %TODO: This line is missing some code!
         
         % Apply the LP filter to the upsampled (unfiltered) signal.
-        z = 0; %TODO: This line is missing some code!
+        z = conv(zup, hlp); %TODO: This line is missing some code!
     end
 
     function z = frame_decimate(x,L,hlp)
+        %% Finish
         % Decimate (downsample) a signal x by factor L, with an optionally
         % configurable lowpass filter.
         % Arguments:
@@ -383,13 +393,14 @@ student_id = 20021026;
         hlp = hlp(:);
         
         % Apply the lowpass filter to avoid aliasing when decimating
-        xf = 0; %TODO: This line is missing some code!
+        xf = conv(x, hlp); %TODO: This line is missing some code!
         
         % Downsample by keeping samples [1, 1+L, 1+2*L, ...]
-        z = 0; %TODO: This line is missing some code!
+        z = xf(1:L:end); %TODO: This line is missing some code!
     end
 
     function z = frame_modulate(x, theta)
+        %% Finish
        % Modulates a signal of length N with a modulation frequency theta.
        % Arguments:
        %    x       Signal to modulate of length N
@@ -408,10 +419,11 @@ student_id = 20021026;
        
        % Modulate x by multiplying the samples with the complex exponential
        % exp(i * 2 * pi * theta * n)
-       z = 0; %TODO: This line is missing some code!
+       z = x .* exp(1i * 2 * pi * theta * n); %TODO: This line is missing some code!
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_audio_channel(tx, N_cp, snr, sync_err, f_s, f_c, L)
+        %% Not Compulsory
         % Simulate modulated OFDM signal transmission/reception over an
         % audio channel. This fairly accurately simulates the physical
         % channel of audio between a loudspeaker and a microphone.
