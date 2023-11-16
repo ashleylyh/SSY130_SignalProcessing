@@ -311,7 +311,8 @@ student_id = 20021026;
         
         % Esimate channel
         %H = x.p/r.p; %TODO: This line is missing some code! %%not sure
-        H = fft(h, N);
+        %H = fft(h, N);
+        H = (r.p)./(x.p); %TODO: This line is missing some code!
 
         % Remove effect of channel on the data package by equalization.
         r_eq = r.d./H; %TODO: This line is missing some code!
