@@ -169,7 +169,7 @@ student_id = 20021026;
         % Remove effect of channel by equalization. Here, we can do this by
         % dividing r (which is in the frequency domain) by the channel gain (also
         % in the frequency domain).
-        H = fft(h, N); %% not sure
+        H = fft(h, N);
         r_eq = r./H; %TODO: This line is missing some code!
         
         symbs.rx_e = r_eq; %Store symbols for later
@@ -310,8 +310,7 @@ student_id = 20021026;
         symbs.rx_pe = r.d; % Store symbols for later
         
         % Esimate channel
-        %H = x.p/r.p; %TODO: This line is missing some code! %%not sure
-        H = fft(h, N);
+        H = x.p/r.p; %TODO: This line is missing some code! %%not sure
 
         % Remove effect of channel on the data package by equalization.
         r_eq = r.d./H; %TODO: This line is missing some code!
@@ -331,9 +330,9 @@ student_id = 20021026;
         % all)
         % receieved bits are different, which is the number we'd expect if we
         % compare two random bit sequences).
-        %[rx_p, rx_d] = split_frame(rx);
-     
-        ber = 1-sum(rx == tx.d)/length(rx); 
+        [rx.d, rx.p] = split_frame(rx);
+        %ber = 1-sum(rx == tx.d)/length(rx); %% error
+        ber = 1-sum(rx == tx)/length(tx); 
     end
 
     function z = frame_interpolate(x,L,hlp)
