@@ -89,7 +89,7 @@ student_id = 20021026;
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_known_channel(tx, h, N_cp, snr, sync_err)
-        %% Not Compulsory?
+        %% Finish
         % Simulate OFDM signal transmission/reception over a known channel.
         %
         % -----------------------------------------------------------------
@@ -169,7 +169,7 @@ student_id = 20021026;
         % Remove effect of channel by equalization. Here, we can do this by
         % dividing r (which is in the frequency domain) by the channel gain (also
         % in the frequency domain).
-        H = fft(h, N); %% not sure
+        H = fft(h, N); 
         r_eq = r./H; %TODO: This line is missing some code!
         
         symbs.rx_e = r_eq; %Store symbols for later
@@ -213,7 +213,7 @@ student_id = 20021026;
     end
 
     function [rx, evm, ber, symbs] = sim_ofdm_unknown_channel(tx, h, N_cp, snr, sync_err)
-        %% Not Compulsory?
+        %% Finish
         % Simulate OFDM signal transmission/reception over an unknown
         % channel.
         %
@@ -428,8 +428,8 @@ student_id = 20021026;
        z = x .* exp(1i * 2 * pi * theta * n); %TODO: This line is missing some code!
     end
 
-    function [rx, evm, ber, symbs] = sim_ofdm_audio_channel(tx, N_cp, snr, sync_err, f_s, f_c, L)
-        %% Not Compulsory
+       function [rx, evm, ber, symbs] = sim_ofdm_audio_channel(tx, N_cp, snr, sync_err, f_s, f_c, L)
+           %% Finish 
         % Simulate modulated OFDM signal transmission/reception over an
         % audio channel. This fairly accurately simulates the physical
         % channel of audio between a loudspeaker and a microphone.
@@ -494,8 +494,8 @@ student_id = 20021026;
         tx.p = tx.p(:);
         
         % Convert bits to QPSK symbols
-        x.p = 0; %TODO: This line is missing some code!
-        x.d = 0; %TODO: This line is missing some code!
+        x.p = bits2qpsk(tx.p); %TODO: This line is missing some code!
+        x.d = bits2qpsk(tx.d); %TODO: This line is missing some code!
 
         symbs.tx = x.d;   % Store transmitted data symbols for later
 
@@ -506,21 +506,21 @@ student_id = 20021026;
         end
 
         % Create OFDM time-domain block using IDFT
-        z.p = 0; %TODO: This line is missing some code!
-        z.d = 0; %TODO: This line is missing some code!
+        z.p = ifft(x.p,N); %TODO: This line is missing some code!
+        z.d = ifft(x.d,N); %TODO: This line is missing some code!
 
         % Add cyclic prefix to create OFDM package
-        zcp.p = 0; %TODO: This line is missing some code!
-        zcp.d = 0; %TODO: This line is missing some code!
+        zcp.p = add_cyclic_prefix(z.p,N_cp); %TODO: This line is missing some code!
+        zcp.d = add_cyclic_prefix(z.d,N_cp); %TODO: This line is missing some code!
         
         % Concatenate the messages
-        tx_frame = 0; %TODO: This line is missing some code!
+        tx_frame = concat_packages(zcp.p,zcp.d); %TODO: This line is missing some code!
         
         % Increase the sample rate by interpolation
-        tx_frame_us = 0; %TODO: This line is missing some code!
+        tx_frame_us = frame_interpolate(tx_frame,L); %TODO: This line is missing some code!
         
         % Modulate the upsampled signal
-        tx_frame_mod = 0; %TODO: This line is missing some code!
+        tx_frame_mod = frame_modulate(tx_frame_us, f_c/f_s); %TODO: This line is missing some code!
         
         % Discard the imaginary part of the signal for transmission over a
         % scalar channel (simulation of audio over air)
@@ -533,7 +533,7 @@ student_id = 20021026;
         rx_frame_raw = rx_frame_raw(rx_idx:rx_idx + length(tx_frame_final));
         
         % Demodulate to bring the signal back to the baseband
-        rx_frame_us = 0; %TODO: This line is missing some code!
+        rx_frame_us = frame_modulate(rx_frame_raw, -f_c/f_s); %TODO: This line is missing some code!
         
         % Decimate the signal to bring the sample rate back to the original
         rx_frame = frame_decimate(rx_frame_us, L);
@@ -543,22 +543,22 @@ student_id = 20021026;
         
         % Split frame into packages
         ycp = struct();
-        [ycp.p, ycp.d] = 0; %TODO: This line is missing some code!
+        [ycp.p, ycp.d] = split_frame(rx_frame); %TODO: This line is missing some code!
         
         % Remove cyclic prefix
-        y.p = 0; %TODO: This line is missing some code!
-        y.d = 0; %TODO: This line is missing some code!
+        y.p = remove_cyclic_prefix(ycp.p, N_cp); %TODO: This line is missing some code!
+        y.d = remove_cyclic_prefix(ycp.d, N_cp); %TODO: This line is missing some code!
 
         % Convert to frequency domain using DFT
-        r.p = 0; %TODO: This line is missing some code!
-        r.d = 0; %TODO: This line is missing some code!
+        r.p = fft(y.p); %TODO: This line is missing some code!
+        r.d = fft(y.d); %TODO: This line is missing some code!
         symbs.rx_pe = r.d; % Store symbols for later
         
         % Esimate channel
-        H = 0; %TODO: This line is missing some code!
+        H = (r.p)./(x.p); %TODO: This line is missing some code!
 
         % Remove effect of channel on the data package by equalization.
-        r_eq = 0; %TODO: This line is missing some code!
+        r_eq = (r.d)./H; %TODO: This line is missing some code!
 
         symbs.rx_e = r_eq; %Store symbols for later
 
@@ -567,14 +567,14 @@ student_id = 20021026;
         evm = norm(x.d - r_eq)/sqrt(N);
 
         % Convert the recieved symsbols to bits
-        rx = 0; %TODO: This line is missing some code!
+        rx = qpsk2bits(r_eq); %TODO: This line is missing some code!
 
         % Calculate the bit error rate (BER).
         % This indicates the relative number of bit errors.
         % Typically this will vary from 0 (no bit errors) to 0.5 (half of all
         % receieved bits are different, which is the number we'd expect if we
         % compare two random bit sequences).
-        ber = 1-sum(rx == tx)/length(rx); 
+        ber = 1-sum(rx == tx.d)/length(rx); 
     end
 
 
