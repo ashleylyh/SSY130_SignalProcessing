@@ -11,6 +11,7 @@
  * Example projects. These are all fully-functional and located in example.h/.c
  * Refer to them as needed for examples of how to use the system.
  * 
+ * SYSMODE_HELLO; will compile a minimal project which prints  "Hello World" to the monitor. 
  * SYSMODE_TEST1; will compile the project to apply one of several simple audio
  * DSP effects to either the internal waveform or the microphone input,
  * switching between effects depending on keys pressed on the keyboard and
@@ -58,6 +59,7 @@
  * 
  */
 //Fully functional example system modes
+//#define SYSMODE_HELLO
 #define SYSMODE_TEST1
 //#define SYSMODE_TEST2
 //#define SYSMODE_TEST3
@@ -70,7 +72,7 @@
 //#define SYSMODE_OFDM
 //#define SYSMODE_LMS
 
-#if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_TEST5) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
+#if (1 != defined(SYSMODE_HELLO) + defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_TEST5) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!
 #endif
 
@@ -115,7 +117,7 @@
  * task-switching overhead. Reasonable values range from 64 to 1024 with 256
  * being a reasonable default.
  * For speed, this must be a power of two. */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || defined(SYSMODE_HELLO)
 /** @brief Arbitrarily select a 256-sample block size */
 #define AUDIO_BLOCKSIZE				(1024)
 #elif defined(SYSMODE_FFT)
@@ -194,7 +196,7 @@
 /******************************************************************************
  *
  * The following parameters may be freely changed, but are set to (hopefully)
- * reasonable defaults that shound't need to be modified.
+ * reasonable defaults that can be left unmodified.
  *
  *****************************************************************************/
 

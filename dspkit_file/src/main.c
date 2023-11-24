@@ -66,6 +66,8 @@ int main(void){
 	example_radar_init();
 #elif defined(SYSMODE_FFT)
 	example_fft_init();
+#elif defined(SYSMODE_HELLO)
+	example_hello_init();
 #else
 #error invalid system mode setup!
 #endif
@@ -107,6 +109,8 @@ void main_audio_callback(void){
 	example_radar();
 #elif defined(SYSMODE_FFT)
 	example_fft();
+#elif defined(SYSMODE_HELLO)
+	example_hello();
 #else
 #error invalid system mode setup!
 #endif
@@ -125,6 +129,8 @@ void main_btn_callback(const bool state, struct btn_debounce_s * const btn_insta
 		example_test4_btnpress();
 #elif defined(SYSMODE_FFT)
 		example_fft_btnpress();
+#elif defined(SYSMODE_HELLO)
+		example_hello_btnpress();
 #endif
 		//Do something optional here on a button press event
 	}else{

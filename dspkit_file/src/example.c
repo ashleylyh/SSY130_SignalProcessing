@@ -13,6 +13,29 @@
 #include "arm_const_structs.h"
 #include "backend/asciiplot.h"
 
+#if defined(SYSMODE_HELLO)
+/* Prints "Hello World" on the monitor at a frequency defined by the HELLO_DELAY constant 
+If the user button is pressed the text "The button was pressed" is printed to the monitor.
+*/
+int hello_timer;
+#define HELLO_DELAY  (50)
+void example_hello_init(void){
+	printf("SYSMODE_HELLO is enabled.\n");
+	hello_timer=0; 
+}
+void example_hello(void){
+	if (hello_timer==0){
+		printf("Hello World! \n");
+		hello_timer = HELLO_DELAY;
+	}
+	else {
+		hello_timer--;
+	}
+}
+void example_hello_btnpress(){
+	printf("The button was pressed.\n");
+}
+#endif
 
 #if defined(SYSMODE_TEST1)
 /* Generate a few different audio DSP effects and switch between then on a
@@ -1231,3 +1254,4 @@ void example_fft_btnpress(){
 	};
 }
 #endif
+
