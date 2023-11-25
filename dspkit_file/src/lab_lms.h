@@ -15,7 +15,7 @@ void lab_lms_init(void);
 void lab_lms(void);
 
 //Process one LMS iteration
-void my_lms(float const * y, float const * x, float * xhat, float * e, int blockSize,
+void my_lms(float * y, float * x, float * xhat, float * e, int blockSize,
 			float lms_mu, float * lms_coeffs, float * lms_state, int lms_taps);
 
 #endif /* LAB_LMS_H_ */

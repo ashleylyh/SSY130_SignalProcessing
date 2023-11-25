@@ -12,7 +12,7 @@
 #define		LAB_LMS_MU_CHANGE		(1.2f)
 
 /** @brief Maximual number of filter taps to use for on-line LMS operation */
-#define		LAB_LMS_TAPS_ONLINE_MAX	(1024)
+#define		LAB_LMS_TAPS_ONLINE_MAX	(512)
 
 
 /** @brief Length of stored lms filter error log [s]
@@ -58,7 +58,7 @@ static void lab_lms_reset_errlog(void){
 		printf("Usage guide;\n"																							\
 			"Press the following keys to change the system behavior\n"													\
 			"\t'd' - LMS filtering disabled, raw microphone data output to left speaker. Initial mode.\n"				\
-			"\t'f' - LMS filtering applied, update disabled (h held constant, i.e. mu = 0), error signal output to left speaker\n"	\
+			"\t'f' - LMS filtering applied, update disabled (h held constant), error signal output to left speaker\n"	\
 			"\t'u' - LMS filtering applied with filter update, error signal output to left speaker\n"					\
 			"\t't' - Toggle disturbance source between cosine signal and wide band noise\n"								\
 			"\t'r' - Reset filter coefficients to 0 and empty logged error output\n"									\
@@ -167,25 +167,18 @@ void lab_lms(void){
 				for(i = 0; i < n_lms_taps; i++){
 					h_hat[i] = lms_coeffs[n_lms_taps - 1 - i];
 				}
-				float axis[] = {NAN, NAN, NAN, NAN};	//Auto-scale plot extents
-				float *xdata[] = {NULL};
-				float *ydata[] = {h_hat};
-				size_t data_len[] = {NUMEL(h_hat)};
-				char markers[] = {'*'};
-				char *legend[] = {NULL};
+				char plottitle[] = "Current estimated channel coefficients (equivalent to 'plot(flipud(h))' in Matlab)";
+				float axisdummy[] = {NAN, NAN, NAN, NAN};	//Auto-scale plot extents
 				struct asciiplot_s dummyplot = {
 					.cols = PLOT_COLS,
 					.rows = PLOT_ROWS,
-					.xdata = xdata,
-					.ydata = ydata,
-					.data_len = data_len,
-					.num_plots = 1,
+					.xdata = NULL,
+					.ydata = h_hat,
+					.data_len = NUMEL(h_hat),
 					.xlabel = "n",
 					.ylabel = "\\hat{h}(n)",
-					.title = "Current estimated channel coefficients (equivalent to 'plot(flipud(h))' in Matlab)",
-					.markers = markers,
-					.legend = legend,
-					.axis = axis,
+					.title = plottitle,
+					.axis = axisdummy,
 					.label_prec = 4
 				};
 				asciiplot_draw(&dummyplot);
@@ -212,25 +205,18 @@ void lab_lms(void){
 				}
 
 				//Plot result
-				float axis[] = {NAN, NAN, 0, NAN};	//Auto-scale plot extents, except minimum error (force zero)
-				float *xdata[] = {errlog_time};
-				float *ydata[] = {lms_err_log};
-				size_t data_len[] = {NUMEL(lms_err_log)};
-				char markers[] = {'*'};
-				char *legend[] = {NULL};
+				char plottitle[] = "Logged LMS error output";
+				float axisdummy[] = {NAN, NAN, 0, NAN};	//Auto-scale plot extents, except minimum error (force zero)
 				struct asciiplot_s dummyplot = {
 					.cols = PLOT_COLS,
 					.rows = PLOT_ROWS,
-					.xdata = xdata,
-					.ydata = ydata,
-					.data_len = data_len,
-					.num_plots = 1,
+					.xdata = errlog_time,
+					.ydata = lms_err_log,
+					.data_len = NUMEL(lms_err_log),
 					.xlabel = "Time since filter reset [s]",
 					.ylabel = "abs(error)",
-					.title = "Logged LMS error output",
-					.markers = markers,
-					.legend = legend,
-					.axis = axis,
+					.title = plottitle,
+					.axis = axisdummy,
 					.label_prec = 4
 				};
 				asciiplot_draw(&dummyplot);
@@ -343,7 +329,7 @@ void lab_lms(void){
 	
 }
 
-void my_lms(float const * y, float const * x, float * xhat, float * e, int block_size,
+void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 			float lms_mu, float * lms_coeffs, float * lms_state, int lms_taps){
 	/** @brief Perform one block iteration of the LMS filter
 	 * This function is missing some code that you need to add to get working.
@@ -365,10 +351,6 @@ void my_lms(float const * y, float const * x, float * xhat, float * e, int block
 	 * The initialization step has already been taken care of.
 	 * You now need to write code that performs the update step.
 	 * 
-	 * Note that the variable y used in the above psuedocode is
-	 * *NOT* the same as the argument y in this function, more details
-	 * follows.
-	 * 
 	 * If you are unfamiliar with the C-language there is a Matlab
 	 * implementation of the LMS algorithm in the 'matlab_lms' project 
 	 * subdirectory. Run the 'test_lms.m' script to use it and draw a few
@@ -383,26 +365,21 @@ void my_lms(float const * y, float const * x, float * xhat, float * e, int block
 	 * ----------------------------------------
 	 * 
 	 * The following variables are accessible by you:
-	 * 		y			input: vector of the most recent input signals (**you won't need to use this variable, see lms_state**)
+	 * block_size		input: length of the following vectors;
+	 * 		y			input: the block-size'th most recent input signals (**you won't need to use this variable, see lms_state**)
 	 * 		x			input: vector of "desired" signal
 	 * 		xhat		output: vector of filter output
 	 * 		e			output: vector of error output
-	 * 	 	block_size	input: length of the preceeding vectors
-	 * 		lms_mu		input: step size of the LMS filter update
-	 * 		lms_coeffs	input/output: vector of filter coefficients (i.e. h) **STORED IN REVERSE ORDER**
-	 * 		lms_taps	input: the number of elements in lms_coeffs (i.e. filter length)
-	 * 	 	lms_state	input/output: The most recent (block_size + lms_taps - 1) elements of the current and previous y
 	 * 
-	 * The variable y (continaing the AUDIO_BLOCKSIZE'th most recent inputs)
-	 * is used to update the variable lms_state (which contains the
-	 * AUDIO_BLOCKSIZE + lms_taps - 1 most recent inputs). The variable y used
-	 * in the course book can be thought of as a group of lms_taps values from
-	 * lms_state and is *not* the same as the variable y used in this function.
-	 * At the end of the day, be sure to read from lms_state and leave the
-	 * variable y unchanged.
+	 * lms_mu			input: step size of the LMS filter update
+	 * 
+	 * lms_coeffs		input/output: vector of filter coefficients (i.e. h) **STORED IN REVERSE ORDER**
+	 * lms_taps			input: the number of elements in lms_coeffs (i.e. filter length)
 	 * 
 	 * By reverse order we mean that the true filter is given as
 	 * h = [lms_coeffs[lms_taps-1], ..., lms_coeffs[1], lms_coeffs[0]]
+	 * 
+	 * lms_state		The most recent (block_size + lms_taps - 1) elements of y
 	 * 
 	 * The code that updates LMS state with the new elements in y is already
 	 * implemented for you
@@ -413,9 +390,8 @@ void my_lms(float const * y, float const * x, float * xhat, float * e, int block
 
 	/* Copy new input into lms_state, ordered as
 	* [ ... <lms_taps-1 old elements> ... , ... <block_size new elements> ... ]
-	* As y is defined as a pointer to const data we need to typecast
 	*/
-	arm_copy_f32((float *) y, &(lms_state[lms_taps-1]), block_size);
+	arm_copy_f32(y, &(lms_state[lms_taps-1]), block_size);
 	
 #ifdef MASTER_MODE
 	//If using the full code-base (including the solution) directly solve the LMS update
@@ -427,19 +403,37 @@ void my_lms(float const * y, float const * x, float * xhat, float * e, int block
 	 * doing block_size lms update iterations, i.e. something like:
 	 * 
 	 * int n;
-	 * for(n <range 0 - block_size>){ 		   		//Which order should we loop n over? [0, 1, 2, ..., block_size]? [block_size, ..., 1, 0]?
-	 *   float * y_book = &lms_state[<some index>]; //Here we create a new pointer, which we call y_book, using the notation in the course book. Which index of lms_state should we use to set up y_book?
-	 *   xhat[n] = lms_coeffs * y_book;             //Here '*' implies the dot product. Either use arm_dot_prod_f32 or use a loop to compute xhat[n]
-	 *   e[n] = x[n] - xhat[n];                		//e[n] is a scalar, so do we need to do any looping here?
-	 *   lms_coeffs += 2 * mu * y_book * e[n];      //Use some type of loop to update the vector lms_coeffs with the vector y multiplied by scalars 2, mu, e[n].
+	 * for(n <range 0 - block_size>){ 		   //Which order should we loop n over? [0, 1, 2, ..., block_size]? [block_size, ..., 1, 0]?
+	 *   float * y = &lms_state[<some index>]; //See documentation above for how to extract the relevant section from the long vector lms_state to create "y"
+	 *   xhat[n] = lms_coeffs * y;             //here '*' implies the dot product. Either use arm_dot_prod_f32 or use a loop to compute xhat[n]
+	 *   e[n] = x[n] - xhat[n];                //e[n] is a scalar, so do we need to do any looping here?
+	 *   lms_coeffs += 2 * mu * y * e[n];      //Use some type of loop to update the vector lms_coeffs with the vector y multiplied by scalars 2, mu, e[n].
 	 * }
 	 * ...to here */
+	int k, i, j;
+	j = 0;
+	for(k=0; k < block_size; k++){//block_size-1; k>=0; k--){ 		   //Which order should we loop n over? [0, 1, 2, ..., block_size]? [block_size, ..., 1, 0]?
+	 	float * y = &lms_state[k]; 		   //See documentation above for how to extract the relevant section from the long vector lms_state to create "y"
+		
+		arm_dot_prod_f32(lms_coeffs, y, lms_taps, xhat+k );		//xhat[n] = lms_coeffs * y;
+		e[k] = x[k] - xhat[k];
+		for (i=0; i<lms_taps; i++) {
+			lms_coeffs[i] += 2 * lms_mu * y[i] * e[k];      //Use some type of loop to update the vector lms_coeffs with the vector y multiplied by scalars 2, mu, e[n].
+		}
+		// if (k>block_size-1-10 || k< 10){
+		// 	printf("Iteration %d\n",k);
+
+		// 	printf("y = %f %f %f *** \n", *y,*(y+1),*(y+2));
+		// 	printf("h = %f %f %f *** \n",lms_coeffs[0],lms_coeffs[1],lms_coeffs[2]);
+		// 	printf("x-xhat: %f  -  %f\n",x[k],xhat[k]);
+		// 	printf("value of e[k]: %f\n\n",e[k]);
+		// }
+	}
 #endif
 
 	/* Update lms state, ensure the lms_taps-1 first values correspond to the
 	* lms_taps-1 last values of y, i.e.
 	* [ y[end - lms_taps - 1], ..., y[end], ... <don't care values, will be filled with new y on next call> ...]
-	* As y is defined as a pointer to const data we need to typecast
 	*/
-	arm_copy_f32( &((float *) y)[block_size - (lms_taps-1)], lms_state, lms_taps-1);
+	arm_copy_f32( &y[block_size - (lms_taps-1)], lms_state, lms_taps-1);
 };

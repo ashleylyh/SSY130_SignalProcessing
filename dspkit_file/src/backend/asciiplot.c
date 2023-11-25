@@ -2,10 +2,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-#include <math.h>
 
 #ifdef SSY130_DEVKIT
-// Handle special hardware cases manually
+//Handle special hardware cases manually
 #include "printfn/printfn.h"
 #include "hw/board.h"
 #define snprintf snprintfn
@@ -18,66 +17,63 @@
 /** @brief Returns the number of elements in an array */
 #define NUMEL(x)	(sizeof(x)/sizeof(x[0]))
 
-/** @brief Get the maximum of a and b */
-#define MAX(a,b) \
-({ __typeof__ (a) _a = (a); \
-	__typeof__ (b) _b = (b); \
-	_a > _b ? _a : _b; })
-
+/** @brief Return true if the configured plot structure at least seems reasonable */
+bool asciiplot_verify(struct asciiplot_s * const plot){
+	if(plot->cols <= 0 || plot->rows <= 0 || plot->ydata == NULL || plot->data_len <= 0 || plot->label_prec < 1){
+		return false;
+	}else{
+		return true;
+	}
+}
 
 void asciiplot_draw(struct asciiplot_s * const plot){
-	int i,j;
-
-	// Allocate all X-data points, generating values if x-data points are implicit
-	size_t x_maxlen = 0;
-	for(i = 0; i < plot->num_plots; i++){
-		x_maxlen = MAX(x_maxlen, plot->data_len[i]);
+	if(!asciiplot_verify(plot)){
+		printf("ERR: invalid asciiplot setup!\n");
+		return;
 	}
-
-	float xdata[plot->num_plots][x_maxlen];
-	for(i = 0; i < plot->num_plots; i++){
-		for(j = 0; j < plot->data_len[i]; j++){
-			if(plot->xdata[i] == NULL){
-				xdata[i][j] = j;
-			}else{
-				xdata[i][j] = plot->xdata[i][j];
-			}
+	
+	int i,j;
+	//If xdata is empty, seed it with implicit values and point to these values
+	float xdata[plot->data_len];
+	for(i = 0; i < plot->data_len; i++){
+		if(plot->xdata == NULL){
+			xdata[i] = i;
+		}else{
+			xdata[i] = *(plot->xdata + i);
 		}
 	}
 	
-	// Find extent of input data
+	//Determine the range of values present in data
 	/* Use negation expression in if statement to force any finite number to
-	* overwrite a NaN axis extent (as any comparison with NaN returns false)
-	*/
-	float axis[] = {NAN, NAN, NAN, NAN};
-	for(i = 0; i < plot->num_plots; i++){
-		for(j = 0; j < plot->data_len[i]; j++){
-			if(!(axis[0] < xdata[i][j])){
-				axis[0] = xdata[i][j];
-			}
-			if(!(axis[1] > xdata[i][j])){
-				axis[1] = xdata[i][j];
-			}
-			if(!(axis[2] < plot->ydata[i][j])){
-				axis[2] = plot->ydata[i][j];
-			}
-			if(!(axis[3] > plot->ydata[i][j])){
-				axis[3] = plot->ydata[i][j];
-			}
+	 * overwrite a NaN axis extent (as any comparison with NaN returns false)
+	 */
+	float axis[] = {xdata[0], xdata[0], plot->ydata[0], plot->ydata[0]};
+	for(i = 1; i < plot->data_len; i++){
+		if(!(axis[0] < xdata[i])){
+			axis[0] = xdata[i];
+		}
+		if(!(axis[1] > xdata[i])){
+			axis[1] = xdata[i];
+		}
+		if(!(axis[2] < plot->ydata[i])){
+			axis[2] = plot->ydata[i];
+		}
+		if(!(axis[3] > plot->ydata[i])){
+			axis[3] = plot->ydata[i];
 		}
 	}
 
 	//Handle NaN axis extents, arbitrarily set to zero
 	for(i = 0; i < NUMEL(axis); i++){
 		if(axis[i] != axis[i]){
-			axis[i] = 0;
+			axis [i] = 0;
 		}
 	}
 	
 	//Override the auto-ranging axis extents by any manually set range extents
 	for(i = 0; i < NUMEL(axis); i++){
-		if(plot->axis[i] == plot->axis[i]){
-			axis[i] = plot->axis[i];
+		if(*(plot->axis + i) == *(plot->axis + i)){
+			axis[i] = *(plot->axis + i);
 		}
 	}
 	
@@ -98,13 +94,13 @@ void asciiplot_draw(struct asciiplot_s * const plot){
 		max_y_labellen = ylabellen;
 	}
 	
-	/* Initialize a "screen buffer" containing all characters to output except the optional title and legend
-	* Set up;
-	*   - Frame
-	*   - axis ticks and values
-	*   - x/y-labels
-	*   - data points
-	* Do this in this order so any overwrites will keep the last (most important) data type */
+	/* Initialize a "screen buffer" containing all characters to output except the optional title.
+	 * Set up;
+	 *   - Frame
+	 *   - axis ticks and values
+	 *   - x/y-labels
+	 *   - data points
+	 * Do this in this order so any overwrites will keep the last (most important) data type */
 	
 	//Empty the buffer by placing ' ' characters everywhere
 	char screenbuf[plot->cols][plot->rows];
@@ -142,9 +138,9 @@ void asciiplot_draw(struct asciiplot_s * const plot){
 	}
 	
 	//ymin
-	for(i = 0; i < strlen(axislabel[2]); i++){
-		screenbuf[i + max_y_labellen - strlen(axislabel[2])][plot->rows - 2] = axislabel[2][i];
-	}
+ 	for(i = 0; i < strlen(axislabel[2]); i++){
+ 		screenbuf[i + max_y_labellen - strlen(axislabel[2])][plot->rows - 2] = axislabel[2][i];
+ 	}
 	
 	//ymax
 	for(i = 0; i < strlen(axislabel[3]); i++){
@@ -161,39 +157,38 @@ void asciiplot_draw(struct asciiplot_s * const plot){
 	}
 	
 	//Add all data points
-	const float xmin = axis[0];
-	const float xmax = axis[1];
-	const float ymin = axis[2];
-	const float ymax = axis[3];
-	for(i = 0; i < plot->num_plots; i++){
-		for(j = 0; j < plot->data_len[i]; j++){
-			int xpts = plot->cols - max_y_labellen;
-			int ypts = plot->rows - 2;
+	for(i = 0; i < plot->data_len; i++){
+		int xpts = plot->cols - max_y_labellen;
+		int ypts = plot->rows - 2;
+		
+		float xv = xdata[i];
+		float yv = plot->ydata[i];
+		
+		float xmin = axis[0];
+		float xmax = axis[1];
+		float ymin = axis[2];
+		float ymax = axis[3];
+		
+		//If point lies in plot range, find best location and add it to the screen buffer
+		if(xv >= xmin && xv <= xmax && yv >= ymin && yv <= ymax){
+			float xrel = (xv - xmin) / (xmax - xmin);
+			float yrel = (yv - ymin) / (ymax - ymin);
 			
-			float xv = xdata[i][j];
-			float yv = plot->ydata[i][j];
+			int xp = (xrel * xpts + 0.5);	//Round to nearest integer. As xrel and xpts are known positive this will always be safe.
+			int yp = (yrel * ypts + 0.5);
 			
-			//If point lies in plot range, find best location and add it to the screen buffer
-			if(xv >= xmin && xv <= xmax && yv >= ymin && yv <= ymax){
-				float xrel = (xv - xmin) / (xmax - xmin);
-				float yrel = (yv - ymin) / (ymax - ymin);
-				
-				int xp = (xrel * xpts + 0.5);	//Round to nearest integer. As xrel and xpts are known positive this will always be safe.
-				int yp = (yrel * ypts + 0.5);
-				
-				xp += max_y_labellen;		//Offset x by label length
-				yp = plot->rows - 2 - yp;	//Y is internally stored with 0 uppermost
-			
-				//Manually ensure all locations are valid, ignore any that would lie outside the plot range
-				if(xp >= 0 && yp >= 0 && xp <= plot->cols - 1 && yp <= plot->rows - 1){
-					screenbuf[xp][yp] = plot->markers[i];
-				}
+			xp += max_y_labellen;		//Offset x by label length
+			yp = plot->rows - 2 - yp;	//Y is internally stored with 0 uppermost
+		
+			//Manually ensure all locations are valid, ignore any that would lie outside the plot range
+			if(xp >= 0 && yp >= 0 && xp <= plot->cols - 1 && yp <= plot->rows - 1){
+				screenbuf[xp][yp] = '*';
 			}
 		}
 	}
 	
 	
-	//Finally, print the plot to the output, starting with the title and ending with the legend if needed
+	//Finally, print the plot to the output, starting with the title if needed
 	if(plot->title != NULL){
 		int padding = plot->cols/2 - strlen(plot->title)/2;
 		for(i = 0; i < padding; i++){
@@ -207,10 +202,5 @@ void asciiplot_draw(struct asciiplot_s * const plot){
 		}
 		putchar('\n');
 		putchar('\r');
-	}
-	for(i = 0; i < plot->num_plots; i++){
-		if(plot->legend[i] != NULL){
-			printf("\t%c %s\n", plot->markers[i], plot->legend[i]);
-		}
 	}
 }

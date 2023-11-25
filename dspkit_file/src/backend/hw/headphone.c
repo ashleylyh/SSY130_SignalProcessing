@@ -53,7 +53,7 @@ float * WavePlayBackLeftData;
 float * WavePlayBackRightData;
 
 //Master volume scaling and mute state
-float volume_gain = 0.03f;
+float volume_gain = 1.0f;
 int mute_state = 1;
 
 static void fill_buffer (int16_t *buffer);

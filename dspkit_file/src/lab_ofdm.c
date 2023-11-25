@@ -187,15 +187,12 @@ static bool lab_ofdm_detect(struct lab_ofdm_detect_setup_s * s, size_t * idx_sta
 
 static void lab_ofdm_trigstart_fun(typeof(trig_offset) index){
 	board_set_led(board_led_blue, true);
-	printf("\n--------------------------------------------------\n");
-	printf("Possible signal detected!\n");
-	printf("Attempting decode from input buffer index %d\n", index);
+	printf("Possible signal detected, attempting decode from input buffer index %d\n", index);
 }
 
 static void lab_ofdm_trigend_fun(void){
 	board_set_led(board_led_blue, false);
-	printf("Input buffer refreshed, checking for OFDM messages.\n");
-	printf("--------------------------------------------------\n");
+	printf("Input buffer refreshed, checking for input.\n");
 }
 
 #define PRINT_HELPMSG() 															\
@@ -305,6 +302,7 @@ void lab_ofdm(void){
 			break;
 		case ' ':
 			sendmsg_delay = LAB_OFDM_TRANSMIT_DELAY	;
+			printf("Quiet! Transmitting message soon.\n\n--------------------------------------------------------------------------------\n\n");
 			break;
 		}
 		if(shift_offset != 0){

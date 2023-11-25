@@ -11,7 +11,6 @@
  * Example projects. These are all fully-functional and located in example.h/.c
  * Refer to them as needed for examples of how to use the system.
  * 
- * SYSMODE_HELLO; will compile a minimal project which prints  "Hello World" to the monitor. 
  * SYSMODE_TEST1; will compile the project to apply one of several simple audio
  * DSP effects to either the internal waveform or the microphone input,
  * switching between effects depending on keys pressed on the keyboard and
@@ -59,8 +58,7 @@
  * 
  */
 //Fully functional example system modes
-//#define SYSMODE_HELLO
-//#define SYSMODE_TEST1
+// #define SYSMODE_TEST1
 //#define SYSMODE_TEST2
 //#define SYSMODE_TEST3
 //#define SYSMODE_TEST4
@@ -69,10 +67,10 @@
 //#define SYSMODE_FFT
 
 //Student project system modes
-#define SYSMODE_OFDM
+ #define SYSMODE_OFDM
 //#define SYSMODE_LMS
 
-#if (1 != defined(SYSMODE_HELLO) + defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_TEST5) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
+#if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_TEST5) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!
 #endif
 
@@ -90,11 +88,7 @@
  * Should match one of the #ifdef lines in src/blocks/waveforms/mp3_data.h
  * For example, one line is #ifdef MP3_DATA_MUSIC, so MP3_DATA_MUSIC is
  * acceptable  */
-#ifdef SYSMODE_OFDM
-#define MP3_DATA_NONE   // For OFDM lab, no music signal is used, so load a dummy file to reduce the upload time.
-#else
-#define MP3_DATA_FLY    // For other operation modes, load some useful audio signal
-#endif
+#define MP3_DATA_CRAZY
 #endif
 
 /** @brief Define this directive to include the assignment solutions. The
@@ -117,7 +111,7 @@
  * task-switching overhead. Reasonable values range from 64 to 1024 with 256
  * being a reasonable default.
  * For speed, this must be a power of two. */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || defined(SYSMODE_HELLO)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
 /** @brief Arbitrarily select a 256-sample block size */
 #define AUDIO_BLOCKSIZE				(1024)
 #elif defined(SYSMODE_FFT)
@@ -175,7 +169,7 @@
 /** @brief Number of columns in all terminal plots */
 #define PLOT_COLS					(120)
 /** @brief Number of rows in all terminal plots */
-#define PLOT_ROWS					(30)
+#define PLOT_ROWS					(40)
 
 /** @brief Master logarithmic output volume (amplitude) set in DAC.
  * Valid range are integers 0 - 85.
@@ -184,7 +178,7 @@
  * 10^AUDIO_VOLUME.
  * The user can control the output amplitude using the VOLUME_UP_CHAR and
  * VOLUME_DOWN_CHAR keys respectively */
-#define AUDIO_VOLUME				(85)
+#define AUDIO_VOLUME				(70)
 
 /** @brief Microphone gain.
  * Valid range is integers 0 - 100 */
@@ -196,7 +190,7 @@
 /******************************************************************************
  *
  * The following parameters may be freely changed, but are set to (hopefully)
- * reasonable defaults that can be left unmodified.
+ * reasonable defaults that shound't need to be modified.
  *
  *****************************************************************************/
 

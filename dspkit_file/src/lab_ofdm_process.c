@@ -6,8 +6,8 @@
 *  modified NOV 21, 2016
 *      Author: mckelvey
 */
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 #include "lab_ofdm_process.h"
 #include "backend/arm_math.h"
 #include "blocks/sources.h"
@@ -212,60 +212,36 @@ void cnvt_cmplx_2_re_im( float * pCmplx, float * pRe, float * pIm, int length ){
 
 void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int length ){
 	/*
-	* Demodulate a real signal (pSrc) into a complex signal (pRe and pPim)
+	* Demodulate a real signal (pSrc) into a complex signal (pRe and pIm)
 	* with modulation center frequency f and length 'length'.
     *
 	* Note: to avoid getting a false-fail in the self-test routine from
-	* successive rounding errors, be sure to implement this function using
-	* something like (using matlab notation):
+	* rounding errors, be sure to implement this function using something like
+	* (using matlab notation):
 	*
 	* omega = 0;
-	* inc = - 2*pi*f;
 	* for i=1:length
 	*   z(i) = pSrc(i) * exp(1j*omega);
-	*	omega = omega + inc;
+	*   omega = omega - 2*pi*f;
 	* end
 	* pRe = real(z);
 	* pIm = imag(z);
-	*
-	* Be sure *NOT* to do something like:
-	*
-	* for i=1:length
-	*	omega = -2*pi*f*(i-1);
-	*   z(i) = pSrc(i) * exp(1j*omega);
-	* end
-	* pRe = real(z);
-	* pIm = imag(z);
-	*
-	* The reason for this is that the term 'inc' will be rounded to the nearest
-	* floating-point number and be kept constant for all interations of the for
-	* loop. This is in contrast to the second case where the modulation frequency
-	* might effectively jitter between different values with the lowest rounding
-	* error. Though the latter gives a more accurate average frequency, we are
-	* fairly sensistive to frequency jitter as this is equivalent to a change in
-	* phase.
 	* 
 	*/
+
 	#ifdef MASTER_MODE
-#include "../../secret_sauce.h"
-	DO_OFDM_DEMODULATE();
-#else
+	#include "../../secret_sauce.h"
+		DO_OFDM_DEMODULATE();
+	#else
 	/* TODO: Add code from here... */
-	float omega = 0.0;
-	# define M_PI           3.14159265358979323846  /* pi */
-    float inc = -2 * M_PI * f;
-
-    for (int i = 0; i < length; i++) {
-        float realPart = pSrc[i] * cos(omega);
-        float imagPart = pSrc[i] * sin(omega);
-
-        pRe[i] = realPart;
-        pIm[i] = imagPart;
-
-        omega += inc;
-    }
+	float w =0,inc=f*M_PI*2;
+	for (int i=0; i<= length-1; i++){
+		pRe[i]=pSrc[i]*arm_cos_f32(w);
+		pIm[i]=pSrc[i]*arm_sin_f32(w);
+		w=w-inc;
+	}
 	/* ...to here */
-#endif
+	#endif
 }
 
 void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
@@ -279,12 +255,12 @@ void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
 		DO_OFDM_RE_IM_2_CMPLX();
 #else
 	/* TODO: Add code from here... */
-	for (int i = 0; i < length; ++i )
-    {
-        pCmplx[2 * i] = pRe[i];
-        pCmplx[2 * i + 1] = pIm[i];
-    }
+	for(int i=0;i<= length-1;i++){
+		pCmplx[i*2]=pRe[i];
+		pCmplx[i*2+1]=pIm[i];
+	}
 	/* ...to here */
+
 #endif
 }
 
@@ -322,23 +298,25 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 	* http://www.keil.com/pack/doc/CMSIS/DSP/html/index.html 
 	* The array pTmp may be freely used and is long enough to store any complex
 	* vector of up to length elements. */
+/*
+	* hhat_conj = conj(conj(ptxPilot) .* prxPilot)
+	* and the recieved symbols are equalized by
+	* pEqualized = prxMes .* hhat_conj
+	* as described in the project PM. 
+*/
 	
 	/* TODO: Add code from here...*/
-	 //float pTmp[2*length];  // Temporary storage array
 
-    // Step 1: Estimate the conjugated channel
-    // Conjugate of transmitted pilots
-    arm_cmplx_conj_f32(ptxPilot, pTmp, length);
-    
-    // Multiply conjugated transmitted pilots with received pilots
-    arm_cmplx_mult_cmplx_f32(pTmp, prxPilot, pTmp, length);
-    
-    // Conjugate the result to get the estimated channel
-    arm_cmplx_conj_f32(pTmp, hhat_conj, length);
+	// pTmp=conj(ptxPilot)
+	arm_cmplx_conj_f32(ptxPilot,pTmp,length);
+	//pTmp=conj(ptxPilot).*(prxPilot)
+	arm_cmplx_mult_cmplx_f32(pTmp,prxPilot,pTmp,length);
+	//conj(hhat)=conj(conj(ptxPilot).*(prxPilot))
+	arm_cmplx_conj_f32(pTmp,hhat_conj,length);
 
-    // Step 2: Equalize the received message
-    // Multiply received message with the conjugated channel estimate
-    arm_cmplx_mult_cmplx_f32(prxMes, hhat_conj, pEqualized, length);
+	//pEqualized=prxMes*conj(hhat)
+	arm_cmplx_mult_cmplx_f32(prxMes,hhat_conj,pEqualized,length);
+
 	/* ...to here */
 #endif
 }
@@ -417,6 +395,26 @@ void lab_ofdm_process_tx(float * real_tx){
 	
 	/* Encode pilot string to qpsk sybols */
 	lab_ofdm_process_qpsk_encode(pilot_message, ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
+	
+	/* Plot constellation diagram */
+	float axis[4] = {-1.5, 1.5, -1.5, 1.5};
+	float plot_re[NUMEL(ofdm_buffer)/2];
+	float plot_im[NUMEL(ofdm_buffer)/2];
+	cnvt_cmplx_2_re_im(ofdm_buffer, plot_re, plot_im, NUMEL(plot_re));
+	struct asciiplot_s plot = {
+		.cols = 48,
+		.rows = 32,
+		.xdata = plot_re,
+		.ydata = plot_im,
+		.data_len = NUMEL(plot_re),
+		.xlabel = "re",
+		.ylabel = "im",
+		.title = "Transmitted message constellation diagram",
+		.axis = axis,
+		.label_prec = 3,
+	};
+	asciiplot_draw(&plot);
+	
 	/* perform IFFT on ofdm_buffer */
 	BUILD_BUG_ON(LAB_OFDM_BLOCKSIZE != 64);
 	arm_cfft_f32(&arm_cfft_sR_f32_len64, ofdm_buffer, LAB_OFDM_IFFT_FLAG, LAB_OFDM_DO_BITREVERSE);
@@ -446,11 +444,8 @@ void lab_ofdm_process_tx(float * real_tx){
 	clean_str(message, tx_message_safe, NUMEL(tx_message_safe));
 	clean_str(pilot_message, pilot_message_safe, NUMEL(pilot_message_safe));
 	
-	printf("\n\n\n--------------------------------------------------\n");
-	printf("\t\tSending message!\n");
-	printf("Pilot:'%s'(non-printable characters replaced by '_')\n", pilot_message_safe);
-	printf("Data: '%s'\n", tx_message_safe);
-	printf("--------------------------------------------------\n");
+	printf("Pilot message:  '%s'(non-printable characters replaced by '_')\n", pilot_message_safe);
+	printf("Transmitted:    '%s'\n", tx_message_safe);	
 }
 
 void lab_ofdm_process_rx(float * real_rx_buffer, bool equalization_div){
@@ -499,23 +494,20 @@ void lab_ofdm_process_rx(float * real_rx_buffer, bool equalization_div){
 	}
 	
 	/* Plot constellation diagram */
-	float rx_re[LAB_OFDM_BLOCKSIZE];
-	float rx_im[LAB_OFDM_BLOCKSIZE];
-	float tx_re[] = {M_ONE_OVER_SQRT_2, M_ONE_OVER_SQRT_2, -M_ONE_OVER_SQRT_2, -M_ONE_OVER_SQRT_2};	// Manually construct transmitted constellation diagram
-	float tx_im[] = {M_ONE_OVER_SQRT_2, -M_ONE_OVER_SQRT_2, M_ONE_OVER_SQRT_2, -M_ONE_OVER_SQRT_2};
+	float plot_re[LAB_OFDM_BLOCKSIZE];
+	float plot_im[LAB_OFDM_BLOCKSIZE];
 	float * symb_ptr;
 	if(equalization_div){
 		symb_ptr = soft_symb;
 	}else{
 		symb_ptr = ofdm_received_message;
 	}
-	cnvt_cmplx_2_re_im(symb_ptr, rx_re, rx_im, NUMEL(rx_re));
-	// Set up plot to be square, with extent equal to the maximum magnitude of
-	// elements in rx_re and rx_im and at least containing the transmitted symbols
-	float axis_extent = 1.0f;
-	for(i = 0; i < NUMEL(rx_re); i++){
-		float re = fabsf(rx_re[i]);
-		float im = fabsf(rx_im[i]);
+	cnvt_cmplx_2_re_im(symb_ptr, plot_re, plot_im, NUMEL(plot_re));
+	// Set up plot to be square, with extent equal to the maximum magnitude of elements in plot_re and plot_im
+	float axis_extent = 0.0f;
+	for(size_t i = 0; i < NUMEL(plot_re); i++){
+		float re = fabsf(plot_re[i]);
+		float im = fabsf(plot_im[i]);
 		axis_extent = MAX(axis_extent, MAX(re, im));
 	}
 	float axis[] = {-axis_extent, axis_extent, -axis_extent, axis_extent};
@@ -524,32 +516,19 @@ void lab_ofdm_process_rx(float * real_rx_buffer, bool equalization_div){
 	#define TITLESTR_DIV	"R/H"
 	char titlestr[NUMEL(TITLESTR_PREFIX) + NUMEL(TITLESTR_CONJ)];
 	snprintfn(titlestr, NUMEL(titlestr), TITLESTR_PREFIX "%s", equalization_div ? TITLESTR_DIV : TITLESTR_CONJ);
-
-	float *xdata[] = {rx_re, tx_re};
-	float *ydata[] = {rx_im, tx_im};
-	size_t data_len[] = {NUMEL(rx_re), NUMEL(tx_re)};
-	char markers[] = {'*', 'O'};
-	char legend_rx[] = "Receieved, equalized symbols";
-	char legend_tx[] = "Transmitted symbols";
-	char *legend[] = {legend_rx, legend_tx};
-
 	struct asciiplot_s plot = {
-		.cols = PLOT_COLS,
-		.rows = PLOT_ROWS,
-		.xdata = xdata,
-		.ydata = ydata,
-		.data_len = data_len,
-		.num_plots = 2,
+		.cols = 48,
+		.rows = 32,
+		.xdata = plot_re,
+		.ydata = plot_im,
+		.data_len = NUMEL(plot_re),
 		.xlabel = "re",
 		.ylabel = "im",
 		.title = titlestr,
-		.markers = markers,
-		.legend = legend,
 		.axis = axis,
 		.label_prec = 3,
 	};
 	asciiplot_draw(&plot);
-	printf("\n");
 	
 	/* Sanitize recieved character array to only contain printable characters. */
 	char rec_message_safe[NUMEL(rec_message)+1];

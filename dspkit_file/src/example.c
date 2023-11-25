@@ -13,29 +13,6 @@
 #include "arm_const_structs.h"
 #include "backend/asciiplot.h"
 
-#if defined(SYSMODE_HELLO)
-/* Prints "Hello World" on the monitor at a frequency defined by the HELLO_DELAY constant 
-If the user button is pressed the text "The button was pressed" is printed to the monitor.
-*/
-int hello_timer;
-#define HELLO_DELAY  (10)
-void example_hello_init(void){
-	printf("SYSMODE_HELLO is enabled.\n");
-	hello_timer=0; 
-}
-void example_hello(void){
-	if (hello_timer==0){
-		printf("Hello World! \n");
-		hello_timer = HELLO_DELAY;
-	}
-	else {
-		hello_timer--;
-	}
-}
-void example_hello_btnpress(){
-	printf("The button was pressed.\n");
-}
-#endif
 
 #if defined(SYSMODE_TEST1)
 /* Generate a few different audio DSP effects and switch between then on a
@@ -1079,23 +1056,15 @@ void example_radar(void){
 		rxbuf_idx = 0; 		//Start saving the received input with zero offset
 		tx_delay = systime_get_delay(S2US(RADAR_DELAY_s));
 	}else if(plot_pending || force_plot){
-		float *xdata[] = {NULL};
-		float *ydata[] = {ydata_plot};
-		size_t data_len[] = {ydata_num};
-		char markers[] = {'*'};
-		char *legend[] = {NULL};
 		struct asciiplot_s dummyplot = {
 			.cols = PLOT_COLS,
 			.rows = PLOT_ROWS,
-			.xdata = xdata,
-			.ydata = ydata,
-			.data_len = data_len,
-			.num_plots = 1,
+			.xdata = NULL,
+			.ydata = ydata_plot,
+			.data_len = ydata_num,
 			.xlabel = "n",
 			.ylabel = "|f(n)|",
 			.title = plot_title_p,
-			.markers = markers,
-			.legend = legend,
 			.axis = plot_axis,
 			.label_prec = 4
 		};
@@ -1254,4 +1223,3 @@ void example_fft_btnpress(){
 	};
 }
 #endif
-

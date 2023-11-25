@@ -45,13 +45,6 @@ void example_radar(void);
 void example_fft_init(void);
 void example_fft(void);
 void example_fft_btnpress(void);
-#elif defined(SYSMODE_HELLO)
-// Function pair for the frequency-domain-filtering example
-void example_hello_init(void);
-void example_hello(void);
-void example_hello_btnpress(void);
-#else
-#error invalid system mode setup!
 #endif
 
 #endif /* SRC_EXAMPLE_H_ */
