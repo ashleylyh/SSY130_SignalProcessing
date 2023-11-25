@@ -18,7 +18,7 @@
 If the user button is pressed the text "The button was pressed" is printed to the monitor.
 */
 int hello_timer;
-#define HELLO_DELAY  (50)
+#define HELLO_DELAY  (10)
 void example_hello_init(void){
 	printf("SYSMODE_HELLO is enabled.\n");
 	hello_timer=0; 

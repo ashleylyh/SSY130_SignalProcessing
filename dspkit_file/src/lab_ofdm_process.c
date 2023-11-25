@@ -251,7 +251,19 @@ void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int lengt
 	DO_OFDM_DEMODULATE();
 #else
 	/* TODO: Add code from here... */
+	float omega = 0.0;
+	# define M_PI           3.14159265358979323846  /* pi */
+    float inc = -2 * M_PI * f;
 
+    for (int i = 0; i < length; i++) {
+        float realPart = pSrc[i] * cos(omega);
+        float imagPart = pSrc[i] * sin(omega);
+
+        pRe[i] = realPart;
+        pIm[i] = imagPart;
+
+        omega += inc;
+    }
 	/* ...to here */
 #endif
 }
@@ -267,7 +279,11 @@ void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
 		DO_OFDM_RE_IM_2_CMPLX();
 #else
 	/* TODO: Add code from here... */
-
+	for (int i = 0; i < length; ++i )
+    {
+        pCmplx[2 * i] = pRe[i];
+        pCmplx[2 * i + 1] = pIm[i];
+    }
 	/* ...to here */
 #endif
 }
@@ -308,7 +324,21 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 	* vector of up to length elements. */
 	
 	/* TODO: Add code from here...*/
+	 //float pTmp[2*length];  // Temporary storage array
 
+    // Step 1: Estimate the conjugated channel
+    // Conjugate of transmitted pilots
+    arm_cmplx_conj_f32(ptxPilot, pTmp, length);
+    
+    // Multiply conjugated transmitted pilots with received pilots
+    arm_cmplx_mult_cmplx_f32(pTmp, prxPilot, pTmp, length);
+    
+    // Conjugate the result to get the estimated channel
+    arm_cmplx_conj_f32(pTmp, hhat_conj, length);
+
+    // Step 2: Equalize the received message
+    // Multiply received message with the conjugated channel estimate
+    arm_cmplx_mult_cmplx_f32(prxMes, hhat_conj, pEqualized, length);
 	/* ...to here */
 #endif
 }
