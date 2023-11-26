@@ -308,15 +308,17 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 	/* TODO: Add code from here...*/
 
 	// pTmp=conj(ptxPilot)
-	arm_cmplx_conj_f32(ptxPilot,pTmp,length);
-	//pTmp=conj(ptxPilot).*(prxPilot)
-	arm_cmplx_mult_cmplx_f32(pTmp,prxPilot,pTmp,length);
-	//conj(hhat)=conj(conj(ptxPilot).*(prxPilot))
-	arm_cmplx_conj_f32(pTmp,hhat_conj,length);
+	arm_cmplx_conj_f32(ptxPilot, pTmp, length);
+    
+    // Multiply conjugated transmitted pilots with received pilots
+    arm_cmplx_mult_cmplx_f32(pTmp, prxPilot, pTmp, length);
+    
+    // Conjugate the result to get the estimated channel
+    arm_cmplx_conj_f32(pTmp, hhat_conj, length);
 
-	//pEqualized=prxMes*conj(hhat)
-	arm_cmplx_mult_cmplx_f32(prxMes,hhat_conj,pEqualized,length);
-
+    // Step 2: Equalize the received message
+    // Multiply received message with the conjugated channel estimate
+    arm_cmplx_mult_cmplx_f32(prxMes, hhat_conj, pEqualized, length);
 	/* ...to here */
 #endif
 }
