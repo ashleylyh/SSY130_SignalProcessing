@@ -17,7 +17,7 @@
 %
 %   3) Now that the functions in student_sols.m are completed, continue
 %   working with this file. Notably, your finished functions will be used
-%   to evaluate the behavior of the assignment.
+%   to evaluate the behavior of the assignment
 %
 % -------------------------------------------------------------------------
 %                    Note on function handles
