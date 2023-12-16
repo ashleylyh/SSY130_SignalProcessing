@@ -76,11 +76,12 @@ h = funs.gen_filter();
 
 % Load the reference signals
 load hip2.mat
+% 
+% % Here are some sample plots to illustrate the behavior of your filter.
+% % Feel free to modify, re-use, or completely remove the following lines.
+% 
 
-% Here are some sample plots to illustrate the behavior of your filter.
-% Feel free to modify, re-use, or completely remove the following lines.
-
-% Plot the filter coefficiencts and magnitude/phase response
+%Plot the filter coefficiencts and magnitude/phase response
 figure(1);
 stem(h);
 title('Filter coefficients');
@@ -117,3 +118,6 @@ plot(abs(fft(n)).^2);
 xlabel('Some frequency unit?');
 ylabel('Periodogram of noise');
 title('Frequency distribution of noise in measured position');
+% % 
+% % 
+% % 

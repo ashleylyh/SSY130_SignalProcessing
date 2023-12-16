@@ -9,7 +9,7 @@ function [funs, student_id] = student_sols()
 % Should a numeric value of format YYYYMMDD, e.g.
 % student_id = 19900101;
 % This value must be correct in order to generate a valid secret key.
-student_id = 0;
+student_id = 20021026;
 
 
 % ----------------------------------------
@@ -55,20 +55,15 @@ student_id = 0;
         Xpred(:,1) = x0;        % Index 1 means time 0
         P = P0;                 % Initial covariance matrix (uncertainty)
         
-        % Kalman filter iterations:
         for t=1:N
-            % Filter update based on measurement
-            % Xfilt(:,t) = Xpred(:,t) + ...
-            Xfilt(:,t) = 0; %TODO: This line is missing some code!
-            
-            % Uncertainty update
-            Pplus = 0; %TODO: This line is missing some code!
-            
+            % Filter update based on measurement Y(:,t)
+            Xfilt(:,t) = Xpred(:,t) + P*C'*inv(C*P*C'+R) * (Y(:,t) - C*Xpred(:,t)); %TODO: This line is missing some code!
+            % Covariance after measurement update
+            Pplus = P - P*C'*inv(C*P*C'+R)*C*P; %TODO: This line is missing some code!
             % Prediction
-            Xpred(:,t+1) = 0; %TODO: This line is missing some code!
-            
-            % Uncertainty propagation
-            P = 0; %TODO: This line is missing some code!
+            Xpred(:,t+1) = A * Xfilt(:,t); %TODO: This line is missing some code!
+            % Covariance increase after prediction
+            P = A*Pplus*A' + Q; %TODO: This line is missing some code!
         end
     end
 

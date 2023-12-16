@@ -58,7 +58,7 @@
  * 
  */
 //Fully functional example system modes
-// #define SYSMODE_TEST1
+//#define SYSMODE_TEST1
 //#define SYSMODE_TEST2
 //#define SYSMODE_TEST3
 //#define SYSMODE_TEST4
@@ -67,8 +67,8 @@
 //#define SYSMODE_FFT
 
 //Student project system modes
-#define SYSMODE_OFDM
-//#define SYSMODE_LMS
+//#define SYSMODE_OFDM
+#define SYSMODE_LMS
 
 #if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_TEST5) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!

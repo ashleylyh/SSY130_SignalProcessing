@@ -169,7 +169,7 @@ student_id = 20021026;
         % Remove effect of channel by equalization. Here, we can do this by
         % dividing r (which is in the frequency domain) by the channel gain (also
         % in the frequency domain).
-        H = fft(h, N); 
+        H = fft(h, N); d
         r_eq = r./H; %TODO: This line is missing some code!
         
         symbs.rx_e = r_eq; %Store symbols for later
