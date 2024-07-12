@@ -1,6 +1,4 @@
-# SSY130-files-matlab
-
-
+# SSY130_AppliedSignalProcessing
 
 ## Contents
 
